@@ -39,7 +39,7 @@ class Gui implements Observer{
         this.appName = appName;
     }
 
-    public void update(Observable c, String linia){
+    public void update(Observable c, Object linia){
         this.client = (Client) c;
     }
 

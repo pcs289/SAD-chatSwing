@@ -17,13 +17,13 @@ class SADChat{
 
     public static void main(String[] args) {
 
-          try{
-                    chatURL = InetAddress.getByName("127.0.0.1");
+        try{
+                chatURL = InetAddress.getByName("127.0.0.1");
 
-                    new SuperGui(chatURL, chatPort, appName);
+                new SuperGui(chatURL, chatPort, appName);
 
                     
-                }catch(Exception e){}
+        }catch(Exception e){}
     }
 
     
