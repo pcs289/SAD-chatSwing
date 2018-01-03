@@ -18,6 +18,7 @@ import javax.swing.JTextField;
 import java.util.*;
 import java.lang.*;
 import java.io.*;
+import java.net.*;
 
 class Gui implements Observer{
 
@@ -25,55 +26,121 @@ class Gui implements Observer{
     JTextField  messageBox;
     JTextArea   chatList;
 	JTextArea	usersList;
-
-    JTextField  usernameChooser;
-    JFrame      preFrame;
     JFrame      newFrame;
 
+    JLabel      chooseUsernameLabel;
+    JLabel      errorLabel;
+    JTextField  usernameChooser;
+    JButton     enterServerButton;
+    JFrame      preFrame;
+
     String appName;
-
     Client client;
+    ArrayList<String> connectedUsers;
 
-    public Gui(String appName){
+    public Gui(String appName, InetAddress chatURL, int chatPort){
         newFrame    = new JFrame(appName);
         this.appName = appName;
+        this.connectedUsers = new ArrayList<String>();
+        this.preDisplay(chatURL, chatPort);
+        
     }
 
-    public void update(Observable c, String linia){
+    public void update(Observable c, Object linia){
         this.client = (Client) c;
+        String l = (String) linia;
+        System.out.println("Update: " + l);
+
+        String[] seq = l.split(" ");
+        String command = seq[0];
+        if(command.equals("USR:")){
+        
+            updateUsersList(seq[1], seq[2]);
+
+        }
+
+        if(command.equals("MSG:")){
+            postMessage(seq[1], seq[2]);
+        }
+
+        if(l.length() == 1){
+            int i = Integer.parseInt(l);
+            switch(i){
+                case 0:
+                    preFrame.setVisible(true);
+                    errorLabel.setVisible(true);
+                break;
+                case 1:
+                    display();
+                break;
+                default:
+                break;
+            }
+        }
+
     }
 
-	public void preDisplay() {
+    public void postMessage(String usrName, String msg){
+        this.chatList.append("<"+usrName+">: " + msg + "\n");
+    }
+
+    public void updateUsersList(String action, String user){
+        if(action.equals("ADD")){
+            this.connectedUsers.add(user);
+        }else if(action.equals("DEL")){
+
+            this.connectedUsers.remove(this.connectedUsers.indexOf(user));
+        }else{
+            //Not parsed
+        }
+
+        //Borrar i reescriure
+        this.usersList.setText("<"+this.username+"> (Me)\n");
+
+        for(String name: connectedUsers){
+            this.usersList.append("<"+user+">\n");
+        }
+    }
+
+	public void preDisplay(InetAddress chatURL, int chatPort) {
+
         newFrame.setVisible(false);
         preFrame = new JFrame(appName);
         
         usernameChooser = new JTextField(15);
-        usernameChooser.addActionListener( new ActionListener(){
-                public void actionPerformed(ActionEvent e){
+        
+        chooseUsernameLabel = new JLabel("Quin nickname vols tenir?");
+        
+        errorLabel = new JLabel("Error: Aquest nickname ja està en ús");
+        errorLabel.setVisible(false);
+        errorLabel.setForeground(Color.red);
 
-                        new enterServerButtonListener();
+        enterServerButton = new JButton("Entrar al chat");
 
-                }} );
 
-        JLabel chooseUsernameLabel = new JLabel("Tria el teu nick:");
-        JButton enterServer = new JButton("Entrar al chat");
-        enterServer.addActionListener(new enterServerButtonListener());
+        this.client = new Client(chatURL, chatPort);
+        this.client.addObserver(this);
+        enterServerButton.addActionListener(new enterServerButtonListener(this.client));
+        
         JPanel prePanel = new JPanel(new GridBagLayout());
 
         GridBagConstraints preRight = new GridBagConstraints();
-        preRight.insets = new Insets(0, 0, 0, 10);
+        preRight.insets = new Insets(50, 0, 0, 10);
         preRight.anchor = GridBagConstraints.EAST;
-        GridBagConstraints preLeft = new GridBagConstraints();
-        preLeft.anchor = GridBagConstraints.WEST;
-        preLeft.insets = new Insets(0, 10, 0, 10);
         preRight.weightx = 2.0;
         preRight.fill = GridBagConstraints.HORIZONTAL;
         preRight.gridwidth = GridBagConstraints.REMAINDER;
 
+        GridBagConstraints preLeft = new GridBagConstraints();
+        preLeft.anchor = GridBagConstraints.WEST;
+        preLeft.insets = new Insets(50, 10, 0, 10);
+
         prePanel.add(chooseUsernameLabel, preLeft);
         prePanel.add(usernameChooser, preRight);
-        preFrame.add(BorderLayout.CENTER, prePanel);
-        preFrame.add(BorderLayout.SOUTH, enterServer);
+
+        preFrame.add(BorderLayout.NORTH, prePanel);
+        preFrame.add(BorderLayout.CENTER, errorLabel);
+        preFrame.add(BorderLayout.SOUTH, enterServerButton);
         preFrame.setSize(300, 300);
         preFrame.setVisible(true);
 
@@ -89,16 +156,9 @@ class Gui implements Observer{
 
         messageBox = new JTextField(30);
         messageBox.requestFocusInWindow();
-        messageBox.addActionListener(new ActionListener(){
-
-                public void actionPerformed(ActionEvent e){
-
-                        new sendMessageButtonListener();
-
-                }});
 
         sendMessage = new JButton("Envia Missatge");
-        sendMessage.addActionListener(new sendMessageButtonListener());
+        sendMessage.addActionListener(new sendMessageButtonListener(this.client));
 
         chatList = new JTextArea();
         chatList.setEditable(false);
@@ -111,7 +171,7 @@ class Gui implements Observer{
         usersList.setEditable(false);
         usersList.setFont(new Font("Serif", Font.PLAIN, 15));
         usersList.setLineWrap(true);
-        usersList.append("<" + username + "> (Me)");
+        usersList.append("<" + username + "> (Me)\n");
 
         mainPanel.add(new JScrollPane(usersList), BorderLayout.EAST);
 
@@ -140,33 +200,37 @@ class Gui implements Observer{
     }
 
     class sendMessageButtonListener implements ActionListener {
+        Client c;
+        public sendMessageButtonListener(Client client){
+            this.c = client;
+        }
         public void actionPerformed(ActionEvent event) {
-            if (messageBox.getText().length() < 1) {
-                
-            } else if (messageBox.getText().equals("/clear")) {
-                chatList.setText("Cleared all messages\n");
-                messageBox.setText("");
-            } else if (messageBox.getText().equals("/exit")) {
-                System.exit(0);
-            } else {
-                chatList.append("<" + username + ">:  " + messageBox.getText()
-                        + "\n");
-                messageBox.setText("");
-            }
-            messageBox.requestFocusInWindow();
+        
+            String text = messageBox.getText();
+            this.c.writeToSocket(text);
+            messageBox.setText("");
+
         }
     }
 
     String  username;
 
     class enterServerButtonListener implements ActionListener {
+
+        Client c;
+
+        public enterServerButtonListener(Client client){
+            this.c = client;
+        }
+
         public void actionPerformed(ActionEvent event) {
             username = usernameChooser.getText();
+            System.out.println(username);
             if (username.length() < 1) {
                 System.out.println("No!");
             } else {
                 preFrame.setVisible(false);
-                display();
+                this.c.writeToSocket(username);
             }
         }
 

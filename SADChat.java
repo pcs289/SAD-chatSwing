@@ -3,9 +3,6 @@ import java.util.*;
 import java.io.*;
 import java.lang.*;
 
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-
 class SADChat{
 
     static InetAddress chatURL;
