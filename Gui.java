@@ -49,7 +49,6 @@ class Gui implements Observer{
     public void update(Observable c, Object linia){
         this.client = (Client) c;
         String l = (String) linia;
-        System.out.println("Update: " + l);
 
         String[] seq = l.split(" ");
         String command = seq[0];
@@ -82,10 +81,8 @@ class Gui implements Observer{
     	
         if(action.equals("ADD")){
             this.connectedUsers.add(user);
-            System.out.println("User " + user + " added");
         }else if(action.equals("DEL")){
-            this.connectedUsers.remove(this.connectedUsers.indexOf(user));           
-            System.out.println("User " + user + " deleted");
+            this.connectedUsers.remove(this.connectedUsers.indexOf(user));
         }else{
             //Not parsed
         }

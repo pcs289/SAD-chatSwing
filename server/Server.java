@@ -29,7 +29,6 @@ public class Server{
     public void advertList(String actualNick){
         for(String nick: this.llista.keySet()){
             if(!nick.equals(actualNick)){ //advertim als altres de la nostra arribada
-                System.out.println("Adverting nickname: " + nick + " about " + actualNick + " new connection");
                 PrintWriter outbroadcast = new PrintWriter(this.llista.get(nick).getOutputStream(), true);
                 outbroadcast.println("USR: ADD " + actualNick);
             } else{ //els altres m'avisen de que tambe estan connectats
