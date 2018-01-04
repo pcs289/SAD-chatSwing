@@ -14,6 +14,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JList;
+import javax.swing.DefaultListModel;
 
 import java.util.*;
 import java.lang.*;
@@ -25,7 +27,7 @@ class Gui implements Observer{
 	JButton     sendMessage;
     JTextField  messageBox;
     JTextArea   chatList;
-	JTextArea	usersList;
+	JList       usersList;
     JFrame      newFrame;
 
     JLabel      chooseUsernameLabel;
@@ -86,12 +88,17 @@ class Gui implements Observer{
         }else{
             //Not parsed
         }
+
+
         //Borrar i reescriure
-        
-        this.usersList.setText("<"+this.username+"> (Me)\n");
-        for(String name: connectedUsers){
-    	    this.usersList.append("<"+name+">\n");
+
+        DefaultListModel<String> model = new DefaultListModel<>();
+        model.addElement("<"+this.username+"> (Me)");
+        for(String v: this.connectedUsers){
+            model.addElement(v);
         }
+        
+        usersList.setModel(model);
     }
 
     public void postMessage(String usrName, String msg){
@@ -163,11 +170,10 @@ class Gui implements Observer{
 
         mainPanel.add(new JScrollPane(chatList), BorderLayout.CENTER);
 
-        usersList = new JTextArea();
-        usersList.setEditable(false);
-        usersList.setFont(new Font("Serif", Font.PLAIN, 15));
-        usersList.setLineWrap(true);
-        usersList.append("<" + username + "> (Me)\n");
+        DefaultListModel<String> mod = new DefaultListModel<>();
+        mod.addElement("<" + username + "> (Me)");
+        usersList = new JList(mod);
+        
 
         mainPanel.add(new JScrollPane(usersList), BorderLayout.EAST);
 
