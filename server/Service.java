@@ -17,7 +17,6 @@ public class Service implements Runnable{
     public void broadcastMessage(String text){
         Set<String> keySet = this.serv.llista.keySet();
         for (String nick : keySet){
-
             PrintWriter outbroadcast = new PrintWriter(this.serv.llista.get(nick).getOutputStream(), true);
             outbroadcast.println(text);
         }
@@ -26,10 +25,8 @@ public class Service implements Runnable{
     public void getList(){
         PrintWriter out = new PrintWriter(this.ms.getOutputStream());
         for(String name: this.serv.llista.keySet()){
-            System.out.println("Getting list from " + this.currentNick + "'s thread, checking " + name + " from server");
             if(!name.equals(this.currentNick)){
-                System.out.println("Retrieved name "+ name+ " from " + this.currentNick + "'s thread");
-                out.print("USR: ADD " + name);
+                out.println("USR: ADD " + name);
             }
         }
     }
@@ -37,7 +34,7 @@ public class Service implements Runnable{
     @Override
     public void run() {
         try {
-            getList();
+            //getList();
             BufferedReader in = new BufferedReader(new InputStreamReader(this.ms.getInputStream()));
             while (true) {
                 String line = in.readLine();

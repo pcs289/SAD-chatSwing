@@ -53,13 +53,11 @@ class Gui implements Observer{
 
         String[] seq = l.split(" ");
         String command = seq[0];
-        if(command.equals("USR:")){
-        
+        if(command.equals("USR:")){        
             updateUsersList(seq[1], seq[2]);
-
         }
 
-        if(command.equals("MSG:")){
+        else if(command.equals("MSG:")){
             postMessage(seq[1], seq[2]);
         }
 
@@ -80,26 +78,27 @@ class Gui implements Observer{
 
     }
 
-    public void postMessage(String usrName, String msg){
-        this.chatList.append("<"+usrName+">: " + msg + "\n");
-    }
-
     public void updateUsersList(String action, String user){
+    	
         if(action.equals("ADD")){
             this.connectedUsers.add(user);
+            System.out.println("User " + user + " added");
         }else if(action.equals("DEL")){
-
-            this.connectedUsers.remove(this.connectedUsers.indexOf(user));
+            this.connectedUsers.remove(this.connectedUsers.indexOf(user));           
+            System.out.println("User " + user + " deleted");
         }else{
             //Not parsed
         }
-
         //Borrar i reescriure
+        
         this.usersList.setText("<"+this.username+"> (Me)\n");
-
         for(String name: connectedUsers){
-            this.usersList.append("<"+user+">\n");
+    	    this.usersList.append("<"+name+">\n");
         }
+    }
+
+    public void postMessage(String usrName, String msg){
+        this.chatList.append("<"+usrName+">: " + msg + "\n");
     }
 
 	public void preDisplay(InetAddress chatURL, int chatPort) {

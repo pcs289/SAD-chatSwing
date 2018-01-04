@@ -17,8 +17,8 @@ public class Server{
                 String actualNick = this.requestName(ms); 
                 this.llista.put(actualNick, ms);
                 System.out.println("Client with nickname: "+ actualNick +" connection started");
-                System.out.println(this.llista);
                 advertList(actualNick);
+
                 new Thread(new Service(ms, actualNick, this)).start();
             }
         } catch (Exception e) {
@@ -28,9 +28,17 @@ public class Server{
 
     public void advertList(String actualNick){
         for(String nick: this.llista.keySet()){
-            if(!nick.equals(actualNick)){
-                System.out.println("Adverting nickname: " + actualNick);
-                broadcastMessage("USR: ADD " + actualNick);
+            if(!nick.equals(actualNick)){ //advertim als altres de la nostra arribada
+                System.out.println("Adverting nickname: " + nick + " about " + actualNick + " new connection");
+                PrintWriter outbroadcast = new PrintWriter(this.llista.get(nick).getOutputStream(), true);
+                outbroadcast.println("USR: ADD " + actualNick);
+            } else{ //els altres m'avisen de que tambe estan connectats
+                for(String name: this.llista.keySet()){ 
+                    PrintWriter out = new PrintWriter(this.llista.get(actualNick).getOutputStream(), true);
+                    if(!name.equals(actualNick)){                        
+                        out.println("USR: ADD " + name);
+                    }
+                }
             }
         }
     }
@@ -38,7 +46,6 @@ public class Server{
     public void broadcastMessage(String text){
         Set<String> keySet = this.llista.keySet();
         for (String nick : keySet){
-
             PrintWriter outbroadcast = new PrintWriter(this.llista.get(nick).getOutputStream(), true);
             outbroadcast.println(text);
         }
